@@ -224,7 +224,7 @@ class QuizRenderer:
             # print(f"DEBUG: Logo not found at {logo_path}")
             pass
 
-    def create_title_slide(self, subject="通用"):
+    def create_title_slide(self):
         slide = self.prs.slides.add_slide(self.prs.slide_layouts[6]) # Blank
         self._set_bg(slide)
         self._add_card_container(slide)
@@ -239,7 +239,7 @@ class QuizRenderer:
         t_h = Inches(2)
         title_box = slide.shapes.add_textbox(cx - t_w/2, cy - Inches(1.5), t_w, t_h)
         p = title_box.text_frame.paragraphs[0]
-        p.text = f"{subject}试题深度解析"
+        p.text = f"{self.subject}试题深度解析"
         p.alignment = PP_ALIGN.CENTER
         p.font.name = self.FONT_MAIN
         p.font.size = Pt(60) # Scaled for PPT

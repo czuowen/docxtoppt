@@ -150,7 +150,7 @@ if uploaded_file is not None:
                 
                 st.write(f"🎨 正在应用专业排版 ({subject} / {len(questions)} 道题)...")
                 renderer = QuizRenderer(output_path, subject)
-                renderer.create_title_slide(subject)
+                renderer.create_title_slide()
                 renderer.add_question_slides(questions)
                 renderer.save()
                 

@@ -161,7 +161,7 @@ class QuizApp:
                 pass
                 
             renderer = QuizRenderer(self.output_file, subject)
-            renderer.create_title_slide(subject)
+            renderer.create_title_slide()
             
             # Progress loop?
             # renderer.add_question_slides is atomic. 

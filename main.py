@@ -37,7 +37,7 @@ def main():
     print(f"Generating presentation: {output_filename}...")
     
     renderer = QuizRenderer(output_filename, subject)
-    renderer.create_title_slide(subject)
+    renderer.create_title_slide()
     renderer.add_question_slides(questions)
     
     try:
