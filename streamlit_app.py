@@ -7,40 +7,90 @@ from src.renderer import QuizRenderer
 # 1. Page Config & CSS
 st.set_page_config(page_title="山海寻梦 | 课件转换器", page_icon="🎨", layout="centered")
 
-# Custom UI Styling
+# Custom UI Styling (High-Fidelity Glassmorphism)
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+    
     .stApp {
-        background: #0f172a;
-        color: #f8fafc;
+        background: radial-gradient(circle at top right, #1e293b, #0f172a, #020617);
+        font-family: 'Outfit', sans-serif;
     }
+    
+    /* Center the container */
+    .block-container {
+        padding-top: 3rem;
+        max-width: 700px;
+    }
+
     .main-header {
-        font-size: 3rem;
+        font-size: 3.5rem;
         font-weight: 700;
-        background: linear-gradient(90deg, #4f46e5, #d4af37);
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #eab308 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0px;
+        letter-spacing: -2px;
+        filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
     }
+    
     .sub-header {
         text-align: center;
         color: #94a3b8;
-        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+        font-weight: 300;
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }
+
+    /* Glass Card Style for Uploader */
+    div[data-testid="stFileUploadDropzone"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(10px);
+        border-radius: 20px !important;
+        padding: 40px !important;
+        transition: all 0.3s ease;
+    }
+    div[data-testid="stFileUploadDropzone"]:hover {
+        border-color: #6366f1 !important;
+        background: rgba(99, 102, 241, 0.05) !important;
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Button Styling */
     div.stButton > button {
-        background-color: #4f46e5;
-        color: white;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+        color: white !important;
         width: 100%;
-        border-radius: 12px;
-        height: 3rem;
-        font-weight: 600;
-        border: none;
-        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        border-radius: 14px !important;
+        height: 3.5rem;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        border: none !important;
+        margin-top: 20px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);
     }
     div.stButton > button:hover {
-        background-color: #4338ca;
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 20px 30px -5px rgba(79, 70, 229, 0.6);
+    }
+
+    /* Download Button Specific */
+    div[data-testid="stDownloadButton"] > button {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Info/Status blocks */
+    .stAlert {
+        border-radius: 15px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(5px);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -86,7 +136,7 @@ if uploaded_file is not None:
                 # Provide download link
                 with open(output_path, "rb") as f:
                     st.download_button(
-                        label="⬇️ 立即下载生成的 PPTX",
+                        label="💎 立即获取您的精美课件 (PPTX)",
                         data=f,
                         file_name=f"{os.path.splitext(uploaded_file.name)[0]}.pptx",
                         mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
