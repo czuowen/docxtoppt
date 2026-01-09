@@ -204,10 +204,13 @@ class QuizRenderer:
 
     def _add_page_num(self, slide, num, total):
         # Bottom right corner - Page number (matching reference image)
-        num_right = self.SLIDE_WIDTH - Inches(1.2)
+        # Symmetric margin: 0.5 inches from edge
+        margin = Inches(0.5)
+        box_width = Inches(1.0)
+        num_left = self.SLIDE_WIDTH - margin - box_width
         num_bottom = self.SLIDE_HEIGHT - Inches(0.6)
         
-        numBox = slide.shapes.add_textbox(num_right, num_bottom, Inches(1.0), Inches(0.4))
+        numBox = slide.shapes.add_textbox(num_left, num_bottom, box_width, Inches(0.4))
         p_num = numBox.text_frame.paragraphs[0]
         p_num.alignment = PP_ALIGN.RIGHT
         
@@ -226,10 +229,11 @@ class QuizRenderer:
         logo_path = os.path.join(root_dir, "assets", "logo_circle.png")
         
         if os.path.exists(logo_path):
-            # Bottom-left corner positioning (matching reference image)
+            # Bottom-left corner positioning with symmetric margin (0.5 inches)
             size = Inches(0.8)
-            left = Inches(0.4)
-            bottom = self.SLIDE_HEIGHT - Inches(0.9)  # 0.9 from bottom
+            margin = Inches(0.5)
+            left = margin
+            bottom = self.SLIDE_HEIGHT - Inches(0.9)
             pic = slide.shapes.add_picture(logo_path, left, bottom, width=size)
             # Add hyperlink
             pic.click_action.target_full_uri = "https://www.jxgqc.online"
