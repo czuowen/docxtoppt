@@ -25,12 +25,18 @@ cd gtht
 pip install python-pptx Pillow
 ```
 
-## Usage
-
-Run the GUI version:
+## Run the Web version (Streamlit):
 ```bash
-python gui.py
+streamlit run streamlit_app.py
 ```
+
+## Cloud Deployment (Streamlit Cloud)
+
+1. Push this repository to GitHub.
+2. Sign in to [Streamlit Cloud](https://share.streamlit.io/).
+3. Click "New app" and select your repository.
+4. Set "Main file path" to `streamlit_app.py`.
+5. Click "Deploy!".
 
 ## Project Structure
 

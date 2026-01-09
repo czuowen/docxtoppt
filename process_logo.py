@@ -71,7 +71,14 @@ def process_logo(input_path, output_path, watermark_text="山海寻梦"):
     # 3. Add Watermark (Gold Engraved Cursive)
     draw = ImageDraw.Draw(output)
     
+    # Preferred fonts: Try STXingkai (cursive), then LiSu, then default
+    # Add local assets folder for cloud support
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    assets_dir = os.path.join(script_dir, "assets")
+    
     font_paths = [
+        os.path.join(assets_dir, "STXINGKA.TTF"),
+        os.path.join(assets_dir, "msyh.ttc"),
         "C:/Windows/Fonts/STXINGKA.TTF", # 华文行楷
         "C:/Windows/Fonts/SIMLI.TTF",     # 隶书
         "C:/Windows/Fonts/STLITI.TTF",    # 华文隶书

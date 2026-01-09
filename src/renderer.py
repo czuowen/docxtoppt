@@ -231,14 +231,19 @@ class QuizRenderer:
                 # --- PIL MEASUREMENT ENGINE ---
                 from PIL import ImageFont, ImageDraw, Image
                 
-                def measure_text_exact(text, font_size_pt, width_inches, font_path="C:/Windows/Fonts/msyh.ttc"):
+                def measure_text_exact(text, font_size_pt, width_inches, font_path=None):
                     """
                     Uses PIL to simulate text wrapping and calculate exact height.
                     """
-                    # Convert dimensions to pixels (Assume 96 DPI for layout calculation consistency with PPT visuals)
-                    # PPT Point is 1/72 inch. But Windows/PIL usually treats size as pixels at 96 DPI.
-                    # Or 'size' in ImageFont is points? No, usually pixels.
-                    # Let's assume standard conversion: 1 Pt = 1.333 Px (96/72).
+                    if font_path is None:
+                        # renderer.py is in 'src', assets is in root.
+                        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                        font_path = os.path.join(root_dir, "assets", "msyh.ttc")
+                        
+                        # Fallback for local dev if missing in assets
+                        if not os.path.exists(font_path):
+                            font_path = "C:/Windows/Fonts/msyh.ttc"
+
                     font_size_px = int(font_size_pt * 1.333)
                     max_width_px = int(width_inches * 96)
                     
