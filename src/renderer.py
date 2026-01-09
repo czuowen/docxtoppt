@@ -174,33 +174,21 @@ class QuizRenderer:
         slide.shapes._spTree.remove(circle._element) # Remove it, clean design preferred.
 
     def _add_page_num(self, slide, num, total):
-        # 1. Page Number (Left) - Only show if num > 0
-        if num > 0:
-            left = Inches(1.2)
-            top = self.SLIDE_HEIGHT - Inches(1.2)
-            txBox = slide.shapes.add_textbox(left, top, Inches(2), Inches(0.5))
-            p = txBox.text_frame.paragraphs[0]
-            p.text = f"{num:02d} / {total}"
-            p.font.name = self.FONT_MAIN
-            p.font.size = Pt(18)
-            p.font.color.rgb = self.TEXT_HINT
-
-        # 2. Signatures (Right)
-        # Org Name: 王者多渔 | WeChat: 山海寻梦
-        sig_left = self.SLIDE_WIDTH - Inches(4.5)
-        sig_top = self.SLIDE_HEIGHT - Inches(1.2)
-        sigBox = slide.shapes.add_textbox(sig_left, sig_top, Inches(3.3), Inches(0.5))
-        p_sig = sigBox.text_frame.paragraphs[0]
-        p_sig.alignment = PP_ALIGN.RIGHT
+        # Top right - Page number (aligned with logo position on left)
+        num_right = self.SLIDE_WIDTH - Inches(1.2)
+        num_top = Inches(0.4)
         
-        # Signature: 山海寻梦
-        run_wechat = p_sig.add_run()
-        run_wechat.text = "山海寻梦"
-        run_wechat.font.name = self.FONT_MAIN
-        run_wechat.font.size = Pt(14)
-        run_wechat.font.color.rgb = self.TEXT_HINT
-        # Add hyperlink
-        run_wechat.hyperlink.address = "https://xxyd.jxeduyun.com/index"
+        numBox = slide.shapes.add_textbox(num_right, num_top, Inches(1.0), Inches(0.5))
+        p_num = numBox.text_frame.paragraphs[0]
+        p_num.alignment = PP_ALIGN.RIGHT
+        
+        # Page number: 07 / 16
+        run_num = p_num.add_run()
+        run_num.text = f"{num:02d} / {total:02d}"
+        run_num.font.name = self.FONT_MAIN
+        run_num.font.size = Pt(18)
+        run_num.font.color.rgb = self.TEXT_LIGHT
+        run_num.font.bold = False
 
     def _add_logo(self, slide):
         """Adds the circular logo to the top left."""
@@ -218,7 +206,7 @@ class QuizRenderer:
             top = Inches(6.9 - 0.8) # Tangent to bottom line
             pic = slide.shapes.add_picture(logo_path, left, top, width=size)
             # Add hyperlink
-            pic.click_action.target_full_uri = "http://www.jxgqc.online"
+            pic.click_action.target_full_uri = "https://www.jxgqc.online"
         else:
             # For debug: we can print to console if file missing
             # print(f"DEBUG: Logo not found at {logo_path}")
