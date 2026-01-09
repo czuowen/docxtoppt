@@ -24,6 +24,8 @@ def main():
     # 1. Parse
     parser = QuizParser()
     questions = parser.parse(input_file)
+    subject = parser.infer_subject()
+    print(f"Detected subject: {subject}")
     print(f"Successfully extracted {len(questions)} questions.")
     
     if not questions:
@@ -34,8 +36,8 @@ def main():
     output_filename = f"PPT_{os.path.basename(input_file).replace('.docx', '.pptx')}"
     print(f"Generating presentation: {output_filename}...")
     
-    renderer = QuizRenderer(output_filename)
-    renderer.create_title_slide()
+    renderer = QuizRenderer(output_filename, subject)
+    renderer.create_title_slide(subject)
     renderer.add_question_slides(questions)
     
     try:

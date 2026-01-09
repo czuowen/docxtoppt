@@ -139,17 +139,18 @@ if uploaded_file is not None:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pptx") as tmp_out:
                     output_path = tmp_out.name
 
-                st.write("🏃 开始解析文档...")
+                st.write("🏃 开始解析文档并识别学科...")
                 parser = QuizParser()
                 questions = parser.parse(input_path)
+                subject = parser.infer_subject()
                 
                 if not questions:
                     st.error("❌ 未发现试题，请确认文档内容。")
                     st.stop()
                 
-                st.write(f"🎨 正在应用专业排版 ({len(questions)} 道题)...")
-                renderer = QuizRenderer(output_path)
-                renderer.create_title_slide()
+                st.write(f"🎨 正在应用专业排版 ({subject} / {len(questions)} 道题)...")
+                renderer = QuizRenderer(output_path, subject)
+                renderer.create_title_slide(subject)
                 renderer.add_question_slides(questions)
                 renderer.save()
                 

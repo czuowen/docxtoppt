@@ -6,15 +6,16 @@ from pptx.util import Inches, Pt, Cm
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_AUTO_SIZE
 from pptx.enum.shapes import MSO_SHAPE
+from pptx.enum.dml import MSO_LINE
 from pptx.oxml.xmlchemy import OxmlElement
 
 class QuizRenderer:
-    def __init__(self, output_file='quiz_presentation.pptx'):
+    def __init__(self, output_file='quiz_presentation.pptx', subject="通用"):
         self.output_file = output_file
         self.prs = Presentation()
+        self.subject = subject
         
-        # --- Design Tokens ---
-        # Colors
+        # --- Default Design Tokens ---
         self.BG_COLOR = RGBColor(241, 245, 249) # #f1f5f9
         self.CARD_BG_COLOR = RGBColor(255, 255, 255) # #ffffff
         self.ACCENT_COLOR = RGBColor(59, 130, 246) # #3b82f6 (Blue)
@@ -25,22 +26,93 @@ class QuizRenderer:
         self.RED_ANSWER = RGBColor(239, 68, 68) # #ef4444
         self.ANALYSIS_BG = RGBColor(239, 246, 255) # #eff6ff
         
-        # Fonts (Approximate Noto with standard fonts)
+        # --- Subject-Specific Theme Overrides ---
+        self._apply_theme()
+        
         self.FONT_MAIN = "Microsoft YaHei" 
         
-        # Dimensions (Wide 16:9 is default in python-pptx usually 10x5.625 or 13.33x7.5)
-        # We will assume 13.33 x 7.5 Inches (Widescreen)
+        # Dimensions
         self.SLIDE_WIDTH = Inches(13.333)
         self.SLIDE_HEIGHT = Inches(7.5)
         self.prs.slide_width = self.SLIDE_WIDTH
         self.prs.slide_height = self.SLIDE_HEIGHT
 
+    def _apply_theme(self):
+        """Sets color tokens based on the subject."""
+        themes = {
+            "语文": {"bg": (255, 253, 241), "accent": (192, 57, 43), "dark": (110, 31, 21)}, # Warm Red
+            "历史": {"bg": (255, 253, 241), "accent": (192, 57, 43), "dark": (110, 31, 21)},
+            "数学": {"bg": (240, 249, 255), "accent": (37, 99, 235), "dark": (30, 58, 138)}, # Tech Blue
+            "物理": {"bg": (240, 249, 255), "accent": (37, 99, 235), "dark": (30, 58, 138)},
+            "化学": {"bg": (240, 249, 255), "accent": (37, 99, 235), "dark": (30, 58, 138)},
+            "生物": {"bg": (240, 253, 244), "accent": (22, 163, 74), "dark": (20, 83, 45)}, # Nature Green
+            "地理": {"bg": (240, 253, 244), "accent": (22, 163, 74), "dark": (20, 83, 45)},
+            "英语": {"bg": (245, 243, 255), "accent": (124, 58, 237), "dark": (76, 29, 149)}, # Modern Purple
+            "政治": {"bg": (254, 242, 242), "accent": (220, 38, 38), "dark": (127, 29, 29)}, # Logic Red
+        }
+        
+        theme = themes.get(self.subject, {})
+        if theme:
+            self.BG_COLOR = RGBColor(*theme["bg"])
+            self.ACCENT_COLOR = RGBColor(*theme["accent"])
+            self.ACCENT_DARK = RGBColor(*theme["dark"])
+            # Use background for analysis bg but slightly modified
+            self.ANALYSIS_BG = RGBColor(
+                max(0, theme["bg"][0] - 10),
+                max(0, theme["bg"][1] - 10),
+                max(0, theme["bg"][2] - 10)
+            )
+
     def _set_bg(self, slide):
-        """Sets the slide background color."""
+        """Sets the slide background color and adds decorative 'Canvas-style' elements."""
         background = slide.background
         fill = background.fill
         fill.solid()
         fill.fore_color.rgb = self.BG_COLOR
+        
+        # Add decorative shapes based on subject (simulating Canvas)
+        if self.subject in ["数学", "物理", "化学"]:
+            # Tech Grid / Geometry
+            for i in range(15):
+                line_w = self.SLIDE_WIDTH / 15
+                shape = slide.shapes.add_shape(
+                    MSO_SHAPE.RECTANGLE, 
+                    i * line_w, 0, Inches(0.01), self.SLIDE_HEIGHT
+                )
+                shape.fill.solid()
+                shape.fill.fore_color.rgb = self.ACCENT_COLOR
+                shape.fill.fore_color.brightness = 0.85
+                shape.line.visible = False
+        
+        elif self.subject in ["生物", "地理"]:
+            # Organic Circles
+            import random
+            random.seed(42) # Deterministic for this slide
+            for _ in range(8):
+                size = Inches(random.uniform(1.5, 4))
+                # Generate x, y carefully
+                x_pos = random.uniform(0, 13) * 914400
+                y_pos = random.uniform(0, 7) * 914400
+                shape = slide.shapes.add_shape(
+                    MSO_SHAPE.OVAL,
+                    int(x_pos), int(y_pos), size, size
+                )
+                shape.fill.solid()
+                shape.fill.fore_color.rgb = self.ACCENT_COLOR
+                shape.fill.fore_color.brightness = 0.92
+                shape.line.visible = False
+
+        elif self.subject in ["语文", "历史"]:
+            # Classic Border
+            margin = Inches(0.15)
+            rect = slide.shapes.add_shape(
+                MSO_SHAPE.RECTANGLE,
+                margin, margin, self.SLIDE_WIDTH - 2*margin, self.SLIDE_HEIGHT - 2*margin
+            )
+            rect.fill.background()
+            rect.line.color.rgb = self.ACCENT_COLOR
+            rect.line.width = Pt(1.5)
+            rect.line.dash_style = MSO_LINE.LONG_DASH
 
     def _add_card_container(self, slide):
         """Adds the white card with shadow and top bar."""
@@ -152,7 +224,7 @@ class QuizRenderer:
             # print(f"DEBUG: Logo not found at {logo_path}")
             pass
 
-    def create_title_slide(self):
+    def create_title_slide(self, subject="通用"):
         slide = self.prs.slides.add_slide(self.prs.slide_layouts[6]) # Blank
         self._set_bg(slide)
         self._add_card_container(slide)
@@ -167,7 +239,7 @@ class QuizRenderer:
         t_h = Inches(2)
         title_box = slide.shapes.add_textbox(cx - t_w/2, cy - Inches(1.5), t_w, t_h)
         p = title_box.text_frame.paragraphs[0]
-        p.text = "语文试题深度解析"
+        p.text = f"{subject}试题深度解析"
         p.alignment = PP_ALIGN.CENTER
         p.font.name = self.FONT_MAIN
         p.font.size = Pt(60) # Scaled for PPT

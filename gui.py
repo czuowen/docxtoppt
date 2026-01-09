@@ -124,26 +124,33 @@ class QuizApp:
         self.log(f"Starting conversion for: {os.path.basename(input_file)}")
         
         # Threading
-        t = threading.Thread(target=self.run_conversion, args=(input_file,))
+        t = threading.Thread(target=self.run_conversion, args=(self.input_file,))
         t.start()
         
-    def run_conversion(self, input_file):
+    def run_conversion(self, input_file): # input_file parameter is now redundant, but kept for compatibility
         try:
-            # 1. Parse
+            # 1. Parsing
+            self.lbl_status.config(text="正在分析文档并识别学科...", foreground="blue")
             self.log("Step 1/2: Parsing Document...")
             parser = QuizParser()
-            questions = parser.parse(input_file)
-            self.log(f"  > Found {len(questions)} questions.")
+            questions = parser.parse(self.input_file)
+            subject = parser.infer_subject()
             
             if not questions:
-                self.log("Error: No questions found. Check document format.")
+                self.log(f"错误: {os.path.basename(self.input_file)} 未发现试题")
+                self.lbl_status.config(text="转换失败", foreground="red") # Using existing lbl_status
                 self.finish_conversion(success=False)
                 return
 
-            # 2. Render
+            self.log(f"成功识别学科: [{subject}]，提取共 {len(questions)} 道题目")
+
+            # 2. Rendering
+            self.lbl_status.config(text="正在生成幻灯片...", foreground="blue")
             self.log("Step 2/2: Generating PowerPoint...")
-            filename = os.path.basename(input_file).replace('.docx', '.pptx')
-            output_path = os.path.join(os.path.dirname(input_file), f"PPT_{filename}")
+            
+            doc_title = os.path.basename(self.input_file).replace('.docx', '')
+            filename = os.path.basename(self.input_file).replace('.docx', '.pptx')
+            self.output_file = os.path.join(os.path.dirname(self.input_file), f"PPT_{filename}")
             
             # Auto-rename if locked logic (reused from main.py)
             try:
@@ -153,8 +160,8 @@ class QuizApp:
             except:
                 pass
                 
-            renderer = QuizRenderer(output_path)
-            renderer.create_title_slide()
+            renderer = QuizRenderer(self.output_file, subject)
+            renderer.create_title_slide(subject)
             
             # Progress loop?
             # renderer.add_question_slides is atomic. 
