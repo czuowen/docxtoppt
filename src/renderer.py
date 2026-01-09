@@ -40,8 +40,8 @@ class QuizRenderer:
     def _apply_theme(self):
         """Sets color tokens based on the subject."""
         themes = {
-            "语文": {"bg": (255, 253, 241), "accent": (192, 57, 43), "dark": (110, 31, 21)}, # Warm Red
-            "历史": {"bg": (255, 253, 241), "accent": (192, 57, 43), "dark": (110, 31, 21)},
+            "语文": {"bg": (254, 250, 240), "accent": (139, 69, 19), "dark": (92, 51, 23)}, # Warm Brown/Sepia
+            "历史": {"bg": (254, 250, 240), "accent": (139, 69, 19), "dark": (92, 51, 23)},
             "数学": {"bg": (240, 249, 255), "accent": (37, 99, 235), "dark": (30, 58, 138)}, # Tech Blue
             "物理": {"bg": (240, 249, 255), "accent": (37, 99, 235), "dark": (30, 58, 138)},
             "化学": {"bg": (240, 249, 255), "accent": (37, 99, 235), "dark": (30, 58, 138)},
@@ -103,16 +103,45 @@ class QuizRenderer:
                 shape.line.visible = False
 
         elif self.subject in ["语文", "历史"]:
-            # Classic Border
-            margin = Inches(0.15)
-            rect = slide.shapes.add_shape(
+            # Enhanced Vintage/Humanities Border (Canva-inspired)
+            margin = Inches(0.2)
+            
+            # Outer decorative border
+            outer = slide.shapes.add_shape(
                 MSO_SHAPE.RECTANGLE,
-                margin, margin, self.SLIDE_WIDTH - 2*margin, self.SLIDE_HEIGHT - 2*margin
+                margin, margin, 
+                self.SLIDE_WIDTH - 2*margin, 
+                self.SLIDE_HEIGHT - 2*margin
             )
-            rect.fill.background()
-            rect.line.color.rgb = self.ACCENT_COLOR
-            rect.line.width = Pt(1.5)
-            rect.line.dash_style = MSO_LINE.LONG_DASH
+            outer.fill.background()
+            outer.line.color.rgb = self.ACCENT_DARK
+            outer.line.width = Pt(3)
+            
+            # Inner accent line
+            inner_margin = Inches(0.25)
+            inner = slide.shapes.add_shape(
+                MSO_SHAPE.RECTANGLE,
+                inner_margin, inner_margin,
+                self.SLIDE_WIDTH - 2*inner_margin,
+                self.SLIDE_HEIGHT - 2*inner_margin
+            )
+            inner.fill.background()
+            inner.line.color.rgb = self.ACCENT_COLOR
+            inner.line.width = Pt(1)
+            
+            # Corner decorations (small accent rectangles)
+            corner_size = Inches(0.15)
+            corner_positions = [
+                (margin, margin),  # Top-left
+                (self.SLIDE_WIDTH - margin - corner_size, margin),  # Top-right
+                (margin, self.SLIDE_HEIGHT - margin - corner_size),  # Bottom-left
+                (self.SLIDE_WIDTH - margin - corner_size, self.SLIDE_HEIGHT - margin - corner_size)  # Bottom-right
+            ]
+            for x, y in corner_positions:
+                corner = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, corner_size, corner_size)
+                corner.fill.solid()
+                corner.fill.fore_color.rgb = self.ACCENT_DARK
+                corner.line.visible = False
 
     def _add_card_container(self, slide):
         """Adds the white card with shadow and top bar."""
@@ -197,14 +226,11 @@ class QuizRenderer:
         logo_path = os.path.join(root_dir, "assets", "logo_circle.png")
         
         if os.path.exists(logo_path):
-            # Size: 0.8 inch circle
+            # Bottom-left corner positioning (matching reference image)
             size = Inches(0.8)
-            # Position: Left bottom tangent to gray/white boundary
-            # Card margin_x = 0.5, margin_y = 0.6. 
-            # Slide Height = 7.5. Card Bottom = 7.5 - 0.6 = 6.9.
-            left = Inches(0.5)
-            top = Inches(6.9 - 0.8) # Tangent to bottom line
-            pic = slide.shapes.add_picture(logo_path, left, top, width=size)
+            left = Inches(0.4)
+            bottom = self.SLIDE_HEIGHT - Inches(0.9)  # 0.9 from bottom
+            pic = slide.shapes.add_picture(logo_path, left, bottom, width=size)
             # Add hyperlink
             pic.click_action.target_full_uri = "https://www.jxgqc.online"
         else:
