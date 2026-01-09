@@ -174,19 +174,19 @@ class QuizRenderer:
         slide.shapes._spTree.remove(circle._element) # Remove it, clean design preferred.
 
     def _add_page_num(self, slide, num, total):
-        # Top right - Page number (aligned with logo position on left)
+        # Bottom right corner - Page number (matching reference image)
         num_right = self.SLIDE_WIDTH - Inches(1.2)
-        num_top = Inches(0.4)
+        num_bottom = self.SLIDE_HEIGHT - Inches(0.6)
         
-        numBox = slide.shapes.add_textbox(num_right, num_top, Inches(1.0), Inches(0.5))
+        numBox = slide.shapes.add_textbox(num_right, num_bottom, Inches(1.0), Inches(0.4))
         p_num = numBox.text_frame.paragraphs[0]
         p_num.alignment = PP_ALIGN.RIGHT
         
-        # Page number: 07 / 16
+        # Page number: 01 / 16
         run_num = p_num.add_run()
         run_num.text = f"{num:02d} / {total:02d}"
         run_num.font.name = self.FONT_MAIN
-        run_num.font.size = Pt(18)
+        run_num.font.size = Pt(16)
         run_num.font.color.rgb = self.TEXT_LIGHT
         run_num.font.bold = False
 
