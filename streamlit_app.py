@@ -66,8 +66,8 @@ if uploaded_file is not None:
                     output_path = tmp_out.name
 
                 st.write("🔍 分析文档结构...")
-                parser = QuizParser(input_path)
-                questions = parser.parse()
+                parser = QuizParser()
+                questions = parser.parse(input_path)
                 
                 if not questions:
                     st.error("❌ 未在文档中发现有效的试题内容，请检查格式。")
@@ -75,7 +75,7 @@ if uploaded_file is not None:
                 
                 st.write(f"✍️ 正在渲染 {len(questions)} 道题目...")
                 renderer = QuizRenderer(output_path)
-                renderer.add_title_slide(uploaded_file.name.replace(".docx", ""))
+                renderer.create_title_slide()
                 renderer.add_question_slides(questions)
                 renderer.save()
                 
