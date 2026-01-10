@@ -497,6 +497,14 @@ class QuizRenderer:
 
     def _render_stem(self, p, q_text_masked, answer_char, step, question_rich=None):
         """Renders the question stem with interactive inline answer, supporting rich text formatting."""
+        # Debug logging
+        if question_rich:
+            print(f"[DEBUG] _render_stem 收到 question_rich: {len(question_rich)} 个片段")
+            has_formatting = any(r.get('format', {}).get('bold') or r.get('format', {}).get('underline') for r in question_rich)
+            print(f"[DEBUG] 包含格式: {has_formatting}")
+        else:
+            print(f"[DEBUG] _render_stem question_rich 为空")
+        
         # Check if we have rich text data to use
         if question_rich and isinstance(question_rich, list) and len(question_rich) > 0:
             # Apply rich text formatting

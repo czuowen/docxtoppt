@@ -117,6 +117,8 @@ class QuizParser:
         
         # Also get rich text for formatting support
         rich_paragraphs = self.get_docx_rich_text(file_path)
+        print(f"[DEBUG] 提取到 {len(rich_paragraphs)} 个富文本段落")
+        
         # Create mapping from line text to rich text runs
         rich_text_map = {}
         for para_runs in rich_paragraphs:
@@ -124,6 +126,7 @@ class QuizParser:
                 line_text = ''.join([r['text'] for r in para_runs])
                 rich_text_map[line_text.strip()] = para_runs
         
+        print(f"[DEBUG] 富文本映射表包含 {len(rich_text_map)} 条记录")
         self.questions = []
         current_q = {}
         
@@ -175,13 +178,19 @@ class QuizParser:
                 current_q = {
                     'number': q_num,
                     'question': q_text,
-                    'question_rich': rich_text_map.get(q_text.strip(), []),  # Add rich text
+                    'question_rich': rich_text_map.get(q_text.strip(), []),
                     'real_answer': inline_answer,
                     'options': [],
-                    'options_rich': [],  # Add rich text for options
+                    'options_rich': [],
                     'explanation': '',
-                    'explanation_rich': []  # Add rich text for explanation
+                    'explanation_rich': []
                 }
+                
+                # Debug: check if rich text was found
+                if current_q['question_rich']:
+                    print(f"[DEBUG] 题目 {q_num} 找到富文本: {len(current_q['question_rich'])} 个片段")
+                else:
+                    print(f"[DEBUG] 题目 {q_num} 未找到富文本匹配")
                 continue
             
             # 2. Detect Options
