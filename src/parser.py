@@ -35,11 +35,94 @@ class QuizParser:
                 text_content.append('')
                 
         return '\n'.join(text_content)
+    
+    def get_docx_rich_text(self, path):
+        """Extracts text with formatting metadata from a docx file."""
+        if not os.path.exists(path):
+            return []
+
+        try:
+            document = zipfile.ZipFile(path)
+            xml_content = document.read('word/document.xml')
+            document.close()
+        except Exception:
+            return []
+        
+        try:
+            tree = ET.fromstring(xml_content)
+        except Exception:
+            return []
+        
+        ns = {
+            'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+            'm': 'http://schemas.openxmlformats.org/officeDocument/2006/math'
+        }
+        
+        paragraphs = []
+        
+        for p in tree.findall('.//w:p', ns):
+            para_runs = []
+            
+            # Process each run (formatted text segment)
+            for run in p.findall('.//w:r', ns):
+                # Get text content
+                t_elem = run.find('.//w:t', ns)
+                if t_elem is None or not t_elem.text:
+                    continue
+                
+                text = t_elem.text
+                
+                # Extract formatting properties
+                rPr = run.find('.//w:rPr', ns)
+                formatting = {
+                    'bold': False,
+                    'italic': False,
+                    'underline': False,
+                    'emphasis': None  # For 着重号
+                }
+                
+                if rPr is not None:
+                    # Check for bold
+                    if rPr.find('.//w:b', ns) is not None:
+                        formatting['bold'] = True
+                    
+                    # Check for italic
+                    if rPr.find('.//w:i', ns) is not None:
+                        formatting['italic'] = True
+                    
+                    # Check for underline
+                    u_elem = rPr.find('.//w:u', ns)
+                    if u_elem is not None:
+                        formatting['underline'] = True
+                    
+                    # Check for emphasis marks (着重号)
+                    em_elem = rPr.find('.//w:em', ns)
+                    if em_elem is not None:
+                        em_val = em_elem.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val')
+                        formatting['emphasis'] = em_val if em_val else 'dot'
+                
+                para_runs.append({
+                    'text': text,
+                    'format': formatting
+                })
+            
+            paragraphs.append(para_runs)
+        
+        return paragraphs
 
     def parse(self, file_path):
         """Parses the docx file and returns a list of question dictionaries."""
         content = self.get_docx_text(file_path)
         lines = content.split('\n')
+        
+        # Also get rich text for formatting support
+        rich_paragraphs = self.get_docx_rich_text(file_path)
+        # Create mapping from line text to rich text runs
+        rich_text_map = {}
+        for para_runs in rich_paragraphs:
+            if para_runs:
+                line_text = ''.join([r['text'] for r in para_runs])
+                rich_text_map[line_text.strip()] = para_runs
         
         self.questions = []
         current_q = {}
@@ -92,9 +175,12 @@ class QuizParser:
                 current_q = {
                     'number': q_num,
                     'question': q_text,
+                    'question_rich': rich_text_map.get(q_text.strip(), []),  # Add rich text
                     'real_answer': inline_answer,
                     'options': [],
-                    'explanation': ''
+                    'options_rich': [],  # Add rich text for options
+                    'explanation': '',
+                    'explanation_rich': []  # Add rich text for explanation
                 }
                 continue
             
@@ -136,6 +222,8 @@ class QuizParser:
                         opt = line[start:end].strip()
                         opt = re.sub(r'\s+', ' ', opt).strip()
                         current_q['options'].append(opt)
+                        # Try to find rich text for this option
+                        current_q['options_rich'].append(rich_text_map.get(opt.strip(), []))
                 continue
                 
             # 3. Detect Explicit Answer Line
@@ -159,11 +247,13 @@ class QuizParser:
                 # Remove 【...】 tags inside explanation (e.g. 【分析】)
                 cleaned_expl = re.sub(r'【[^】]*】', '', raw_expl)
                 
-                # Append to identification
+                # Append to explanation
                 if current_q['explanation']:
                     current_q['explanation'] += "\n" + cleaned_expl.strip()
                 else:
-                     current_q['explanation'] = cleaned_expl.strip()
+                    current_q['explanation'] = cleaned_expl.strip()
+                    # Try to find rich text for explanation
+                    current_q['explanation_rich'] = rich_text_map.get(cleaned_expl.strip(), [])
                 continue
             
             # 5. Fallback: Append generic text to explanation if we are in explanation mode? 

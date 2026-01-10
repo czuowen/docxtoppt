@@ -9,6 +9,9 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.dml import MSO_LINE
 from pptx.oxml.xmlchemy import OxmlElement
 
+# Rich text support
+from .rich_text_utils import apply_rich_text_formatting, has_rich_text
+
 class QuizRenderer:
     def __init__(self, output_file='quiz_presentation.pptx', subject="通用"):
         self.output_file = output_file
@@ -393,7 +396,7 @@ class QuizRenderer:
                 p = stem_box.text_frame.paragraphs[0]
                 p.alignment = PP_ALIGN.LEFT
                 
-                self._render_stem(p, q_text_masked, answer_char, step)
+                self._render_stem(p, q_text_masked, answer_char, step, q.get('question_rich', []))
                 
                 current_y += stem_est_h + Pt(8)
                 
@@ -492,8 +495,8 @@ class QuizRenderer:
                     p.font.size = Pt(20)
                     p.font.color.rgb = self.ACCENT_DARK 
 
-    def _render_stem(self, p, q_text_masked, answer_char, step):
-        """Renders the question stem with interactive inline answer."""
+    def _render_stem(self, p, q_text_masked, answer_char, step, question_rich=None):
+        """Renders the question stem with interactive inline answer, supporting rich text formatting."""
         p.font.name = self.FONT_MAIN
         p.font.size = Pt(26) # Requested 26px
         p.font.color.rgb = self.TEXT_STEM
