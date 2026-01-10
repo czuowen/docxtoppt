@@ -497,14 +497,94 @@ class QuizRenderer:
 
     def _render_stem(self, p, q_text_masked, answer_char, step, question_rich=None):
         """Renders the question stem with interactive inline answer, supporting rich text formatting."""
+        # Check if we have rich text data to use
+        if question_rich and isinstance(question_rich, list) and len(question_rich) > 0:
+            # Apply rich text formatting
+            for run_data in question_rich:
+                text = run_data.get('text', '')
+                fmt = run_data.get('format', {})
+                
+                # Check if this segment contains the answer bracket
+                if '（' in text or '）' in text:
+                    # Handle bracket specially
+                    parts = text.split('（   ）')
+                    if len(parts) > 1:
+                        # Before bracket
+                        if parts[0]:
+                            run = p.add_run()
+                            run.text = parts[0]
+                            run.font.name = self.FONT_MAIN
+                            run.font.size = Pt(26)
+                            run.font.color.rgb = self.TEXT_STEM
+                            if fmt.get('bold'): run.font.bold = True
+                            if fmt.get('italic'): run.font.italic = True
+                            if fmt.get('underline'): run.font.underline = True
+                        
+                        # Bracket with answer
+                        run_open = p.add_run()
+                        run_open.text = "（ "
+                        run_open.font.name = self.FONT_MAIN
+                        run_open.font.size = Pt(26)
+                        run_open.font.color.rgb = self.TEXT_STEM
+                        
+                        run_ans = p.add_run()
+                        if step == 1:
+                            run_ans.text = "   "
+                        else:
+                            run_ans.text = f"{answer_char}"
+                            run_ans.font.color.rgb = self.RED_ANSWER
+                            run_ans.font.bold = True
+                        run_ans.font.name = self.FONT_MAIN
+                        run_ans.font.size = Pt(26)
+                        
+                        run_close = p.add_run()
+                        run_close.text = " ）"
+                        run_close.font.name = self.FONT_MAIN
+                        run_close.font.size = Pt(26)
+                        run_close.font.color.rgb = self.TEXT_STEM
+                        
+                        # After bracket
+                        if parts[1]:
+                            run = p.add_run()
+                            run.text = parts[1]
+                            run.font.name = self.FONT_MAIN
+                            run.font.size = Pt(26)
+                            run.font.color.rgb = self.TEXT_STEM
+                            if fmt.get('bold'): run.font.bold = True
+                            if fmt.get('italic'): run.font.italic = True
+                            if fmt.get('underline'): run.font.underline = True
+                    else:
+                        # Regular text with bracket characters but no answer slot
+                        run = p.add_run()
+                        run.text = text
+                        run.font.name = self.FONT_MAIN
+                        run.font.size = Pt(26)
+                        run.font.color.rgb = self.TEXT_STEM
+                        if fmt.get('bold'): run.font.bold = True
+                        if fmt.get('italic'): run.font.italic = True
+                        if fmt.get('underline'): run.font.underline = True
+                else:
+                    # Regular text segment with formatting
+                    run = p.add_run()
+                    run.text = text
+                    run.font.name = self.FONT_MAIN
+                    run.font.size = Pt(26)
+                    run.font.color.rgb = self.TEXT_STEM
+                    if fmt.get('bold'): run.font.bold = True
+                    if fmt.get('italic'): run.font.italic = True
+                    if fmt.get('underline'): run.font.underline = True
+            
+            p.line_spacing = 1.2
+            return
+        
+        # Fallback to original plain text rendering if no rich text
         p.font.name = self.FONT_MAIN
-        p.font.size = Pt(26) # Requested 26px
+        p.font.size = Pt(26)
         p.font.color.rgb = self.TEXT_STEM
         p.font.bold = True
         
         # Split logic for inline bracket
         parts = q_text_masked.split('（   ）')
-        # Simple rebuild
         if len(parts) > 1:
             # Part 1
             run = p.add_run()
@@ -517,9 +597,9 @@ class QuizRenderer:
             
             run_ans = p.add_run()
             if step == 1:
-                run_ans.text = "   " # Space
+                run_ans.text = "   "
             else:
-                run_ans.text = f"{answer_char}" # Answer
+                run_ans.text = f"{answer_char}"
                 run_ans.font.color.rgb = self.RED_ANSWER
                 run_ans.font.bold = True
             
@@ -527,11 +607,9 @@ class QuizRenderer:
             run_close.text = " ）"
             run_close.font.color.rgb = self.TEXT_STEM
             
-            # Remainder (handle multiple brackets? usually one answer)
-            # Just take the rest joined
+            # Remainder
             run_rest = p.add_run()
             run_rest.text = "（   ）".join(parts[1:])
-            
         else:
             # Fallback if no brackets
             p.text = q_text_masked
